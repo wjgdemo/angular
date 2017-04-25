@@ -1,28 +1,57 @@
-//导入工具包 require('node_modules里对应模块')
-var gulp = require('gulp'), //本地安装gulp所用到的地方
-  sass = require('gulp-sass');
 
-//定义一个testSass任务（自定义任务名称）
+var gulp = require('gulp'),
+  sass = require('gulp-sass'),
+  minifycss = require('gulp-minify-css'),
+  concat = require('gulp-concat'),
+  uglify = require('gulp-uglify'),
+  rename = require('gulp-rename'),
+  clean = require('gulp-clean');
+
+//css
 gulp.task('sass', function () {
-  gulp.src('src/sass/*.sass') //该任务针对的文件
-    .pipe(sass()) //该任务调用的模块
-    .pipe(gulp.dest('src/css')) //将会在src/css下生成index.css
+  return gulp.src('src/sass/*.scss')
+    .pipe(sass())
+    .pipe(gulp.dest('src/css'));
+});
+
+gulp.task('minifycss',function () {
+  gulp.src('src/css/*.css')
+    .pipe(rename({suffix: '.min'}))
+    .pipe(minifycss())
     .pipe(gulp.dest('dist/css'));
 });
 
+gulp.task('css',['sass'],function () {
+  gulp.start('minifycss');
+});
+
+//images
 gulp.task('img',function () {
-  gulp.src('src/img/*.*')
+  gulp.src('src/img/**/*.*')
     .pipe(gulp.dest('dist/img'));
 });
 
+//js
 gulp.task('js',function () {
-  gulp.src('src/js/*.*')
+  gulp.src('src/js/**/*.js')
+    .pipe(concat('main.js'))
+    .pipe(uglify())
+    .pipe(rename({suffix: ".min"}))
     .pipe(gulp.dest('dist/js'));
 });
 
+//lib
 gulp.task('lib',function () {
-  gulp.src('src/lib/*')
+  gulp.src('src/lib/**/*.*')
     .pipe(gulp.dest('dist/lib'));
 });
 
-gulp.task('default',['sass','img','lib','js']); //定义默认任务 elseTask为其他任务，该示例没有定义elseTask任务
+gulp.task('clean',function () {
+  return gulp.src(['dist/css','dist/js'])
+    .pipe(clean());
+});
+
+//done
+gulp.task('default',['clean'],function () {
+  gulp.start('css','img','js','lib');
+});
